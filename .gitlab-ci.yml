@@ -1,0 +1,35 @@
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  tags:
+    - windows  # Ensure this matches the tag of your registered GitLab Runner
+  script:
+    # Install dependencies (Node.js example)
+    - echo "Installing dependencies..."
+    - npm install
+
+    # Build the project
+    - echo "Building the project..."
+    - npm run build
+
+    # Compress the build folder
+    - echo "Compressing the build artifacts..."
+    - powershell Compress-Archive -Path build\* -DestinationPath build.zip
+  artifacts:
+    paths:
+      - build.zip
+
+deploy:
+  stage: deploy
+  tags:
+    - windows  # Ensure this matches the tag of your registered GitLab Runner
+  script:
+    # Unzip and deploy to IIS folder
+    - echo "Deploying the application..."
+    - powershell Expand-Archive -Path build.zip -DestinationPath C:\inetpub\wwwroot -Force
+    - echo "Deployment completed"
+  only:
+    - CICD  # Run this job only on pushes to the dev branch
